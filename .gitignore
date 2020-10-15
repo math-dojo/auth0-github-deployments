@@ -102,3 +102,6 @@ dist
 
 # TernJS port file
 .tern-port
+
+## Config.json contains the secrets for each tenant and so MUST NOT be committed into git
+**/config.json
