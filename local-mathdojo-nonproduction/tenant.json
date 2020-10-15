@@ -1,0 +1,17 @@
+{
+  "enabled_locales": [
+    "en"
+  ],
+  "flags": {
+    "new_universal_login_experience_enabled": false,
+    "universal_login": false,
+    "disable_clickjack_protection_headers": false
+  },
+  "picture_url": "https://raw.githubusercontent.com/math-dojo/single-page-web-app/master/src/assets/dojo-transparent.svg",
+  "universal_login": {
+    "colors": {
+      "page_background": "#fafafa",
+      "primary": "#0072a3"
+    }
+  }
+}
