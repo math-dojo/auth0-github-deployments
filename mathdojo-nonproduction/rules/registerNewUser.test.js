@@ -1,15 +1,9 @@
-const vm = require("vm");
-const fs = require("fs");
-const path = require("path");
-
+const auth0RuleLoader = require("../../testing/helpers").loadAuth0Rule;
 const registerNewUserCodeLocation =
   "mathdojo-nonproduction/rules/registerNewUser.js";
-const registerNewUserCode = fs.readFileSync(
-  path.join(process.cwd(), registerNewUserCodeLocation),
-  { encoding: "utf-8" }
-);
 
 test("the rule calls axios", () => {
+  // Given
   const mockAxios = jest
     .fn()
     .mockName("mockAxios")
@@ -18,26 +12,24 @@ test("the rule calls axios", () => {
         permissions: [],
       },
     });
-  const mockRequire = jest
-    .fn()
-    .mockName("mockRequire")
-    .mockImplementationOnce(() => mockAxios);
 
-  const registerNewUserFunction = vm.runInNewContext(
-    `(()=>{return ${registerNewUserCode}})();`,
-    {
-      require: mockRequire,
-      configuration: {
-        userAccountServiceDomain: "localdomain",
-      },
-    },
-    {
-      filename: registerNewUserCodeLocation,
-      displayErrors: true,
-    }
-  );
+  const mapOfModulesToOverride = new Map();
+  mapOfModulesToOverride["axios@0.19.2"] = mockAxios;
+
   const mockAuth0Callback = jest.fn();
+  const auth0ConfigurationObject = {
+    userAccountServiceDomain: "localdomain",
+  };
 
+  const registerNewUserFunction = auth0RuleLoader({
+    ruleLocation: registerNewUserCodeLocation,
+    mapOfRequiredModulesToReplaceWithMocks: mapOfModulesToOverride,
+    configuration: auth0ConfigurationObject,
+  });
+
+  // When
   registerNewUserFunction({}, {}, mockAuth0Callback);
-  expect(mockAuth0Callback.mock.calls.length).toBe(1);
+
+  // Then
+  expect(mockAuth0Callback.mock.calls.length).toBe(3);
 });
