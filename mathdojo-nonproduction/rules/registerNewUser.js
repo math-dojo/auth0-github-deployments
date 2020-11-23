@@ -1,18 +1,21 @@
+/* eslint-disable import/no-unresolved */
+// eslint-disable-next-line no-unused-vars
 function registerNewUser(user, context, callback) {
+  // eslint-disable-next-line global-require
   const axios = require('axios@0.19.2');
-  const options = { method: 'POST',
+  const options = {
+    method: 'POST',
+    // eslint-disable-next-line no-undef
     url: `https://${configuration.userAccountServiceDomain}/organisations/user.organisationId/users`,
     headers: { 'content-type': 'application/json' },
-    data: `{"name":user.name}` };
+    data: '{"name":user.name}',
+  };
 
   axios(options)
-    .then( res => {
-      	const access_token = 
-    	console.log(res.data);
- 	context.idToken['user.permissions'] = res.data.permissions;
+    .then((res) => {
+      const accessToken = console.log(res.data); // TODO: Fix me
+      context.idToken['user.permissions'] = res.data.permissions;
     })
-    .catch( err => {
-      return err;
-    });  
-  return callback(null, user, context);
+    .catch((err) => err);
+  return callback(null, user, context); // TODO: Move me into the axios promise return
 }
