@@ -1,7 +1,6 @@
-/* eslint-disable import/no-unresolved */
-// eslint-disable-next-line no-unused-vars
 function registerNewUser(user, context, callback) {
   // eslint-disable-next-line global-require
+  // eslint-disable-next-line import/no-unresolved
   const axios = require('axios@0.19.2');
   const options = {
     method: 'POST',

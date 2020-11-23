@@ -6,7 +6,7 @@ const registerNewUserCodeLocations = [
 
 describe.each(registerNewUserCodeLocations)(
   '%s Register New User Rule successfully calls User Account Service',
-  (environment, registerNewUserCodeLocation) => {
+  (_environment, registerNewUserCodeLocation) => {
     const mockAxios = jest.fn().mockName('mockAxios');
     const mockAuth0Callback = jest.fn().mockName('mockAuth0Callback');
 
@@ -18,14 +18,14 @@ describe.each(registerNewUserCodeLocations)(
     test('the rule waits for the axios resolution before calling callback', () => {
       // Given
       mockAxios.mockImplementation(
-        () => new Promise((resolveFunction, rejectFunction) => {
+        () => new Promise((resolveFunction) => {
           setTimeout(() => {
             resolveFunction({
               data: {
                 permissions: [],
               },
             });
-          }, 1000);
+          }, 5000);
         }),
       );
 
@@ -46,7 +46,11 @@ describe.each(registerNewUserCodeLocations)(
       registerNewUserFunction({}, {}, mockAuth0Callback);
 
       // Then
-      expect(mockAuth0Callback.mock.calls.length).toBe(3);
+      expect(mockAuth0Callback.mock.calls.length).toBe(0);
+
+      jest.runAllTimers();
+
+      expect(mockAuth0Callback.mock.calls.length).toBe(1);
     });
   },
 );
