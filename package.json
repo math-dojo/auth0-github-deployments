@@ -4,7 +4,8 @@
   "description": "Auth 0 config for the Math Dojo project",
   "main": "index.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "lint": "./node_modules/.bin/eslint ./"
   },
   "repository": {
     "type": "git",
@@ -21,6 +22,10 @@
   },
   "devDependencies": {
     "@types/jest": "^26.0.15",
+    "acorn": "^8.0.4",
+    "eslint": "^7.14.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-plugin-import": "^2.22.1",
     "jest": "^26.6.3"
   }
 }
