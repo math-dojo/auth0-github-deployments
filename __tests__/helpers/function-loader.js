@@ -39,6 +39,7 @@ function loadAuth0Rule({
     {
       require: mockRequire,
       configuration,
+      console,
     },
     {
       filename: ruleLocation,
