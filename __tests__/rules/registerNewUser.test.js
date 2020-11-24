@@ -4,6 +4,8 @@ const registerNewUserCodeLocations = [
   ['Nonproduction', 'mathdojo-nonproduction/rules/registerNewUser.js'],
 ];
 
+jest.useFakeTimers();
+
 describe.each(registerNewUserCodeLocations)(
   '%s Register New User Rule successfully calls User Account Service',
   (_environment, registerNewUserCodeLocation) => {
