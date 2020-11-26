@@ -3,6 +3,7 @@ const auth0RuleLoader = require('../helpers/function-loader').loadAuth0Rule;
 const registerNewUserCodeLocations = [
   ['Nonproduction', 'mathdojo-nonproduction/rules/registerNewUser.js'],
 ];
+const mathDojoNamespace = 'http://math-dojo.io/';
 
 jest.useFakeTimers();
 
@@ -45,14 +46,25 @@ describe.each(registerNewUserCodeLocations)(
       });
 
       // When
-      registerNewUserFunction({}, {}, mockAuth0Callback);
+      registerNewUserFunction({}, { idToken: {} }, mockAuth0Callback);
 
       // Then
-      expect(mockAuth0Callback.mock.calls.length).toBe(0);
+      expect(mockAuth0Callback).not.toHaveBeenCalled();
 
+    /**
+   * This makes the setTtimeout execute instanteously for the purposes
+   * of the test, accelerating the flow of virtual time.
+   */
       jest.runAllTimers();
 
-      expect(mockAuth0Callback.mock.calls.length).toBe(1);
+      return Promise.resolve().then(() => Promise.all([
+        expect(mockAuth0Callback).toHaveBeenCalledTimes(1),
+        expect(mockAuth0Callback).toHaveBeenCalledWith(null, {}, {
+          idToken: {
+            [`${mathDojoNamespace}user_permissions`]: [],
+          },
+        }),
+      ]));
     });
   },
 );
