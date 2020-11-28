@@ -18,7 +18,7 @@ describe.each(registerNewUserCodeLocations)(
       mockAuth0Callback.mockClear();
     });
 
-    test("the rule waits for the axios resolution before calling callback", () => {
+    test("the rule waits for the an HTTP response before invoking the auth0 callback", () => {
       // Given
       mockAxios.mockImplementation(
         () =>
@@ -59,12 +59,17 @@ describe.each(registerNewUserCodeLocations)(
       jest.runAllTimers();
 
       /**
-       * The previous execution of setTimeout put the promise returning data
-       * at the front of the Node.js Job Queue. The test now needs to wait
-       * for the next "tick" of the event queue to check whether the auth0 callback
-       * was used. The simple way to do that is to perform the assertions after
-       * the resolution of another promise, which will now sit behind the one
-       * already queued by setTimeout.
+       * The previous execution of setTimeout put the function waiting for
+       * the return data from mockAxios's promise at the front of the Node.js
+       * Job Queue. 
+       * The test now needs to wait for the invocation of that function which 
+       * will happen during the next "tick" of the event loop. Checking the 
+       * auth0 callback prior to this will fail because, the asynchronous event
+       * has just not been processed yet.
+       * The simple way to "wait" is to perform the assertions as another activity
+       * within the Job Queue during the same tick of the loop, i.e.the instantaneous
+       * resolution of a new promise, whose "downstream function" will now sit behind
+       * the one already queued by setTimeout.
        */
       return Promise.resolve().then(() =>
         Promise.all([
