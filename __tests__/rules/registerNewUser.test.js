@@ -1,3 +1,4 @@
+const crypto = require("crypto");
 const auth0RuleLoader = require("../helpers/function-loader").loadAuth0Rule;
 
 const registerNewUserCodeLocations = [
@@ -16,12 +17,6 @@ describe.each(registerNewUserCodeLocations)(
 
     beforeEach(() => {
       mockAxios.mockClear();
-      mockAuth0Callback.mockClear();
-      mapOfModulesToOverride["axios@0.19.2"] = mockAxios;
-    });
-
-    test("the rule makes a POST call to the User Account Service with a key header and correct payload", () => {
-      // Given
       mockAxios.mockReturnValue(
         Promise.resolve({
           data: {
@@ -29,10 +24,18 @@ describe.each(registerNewUserCodeLocations)(
           },
         })
       );
+      mapOfModulesToOverride["axios@0.19.2"] = mockAxios;
+
+      mockAuth0Callback.mockClear();
+    });
+
+    test("the rule makes a POST call to the User Account Service with an API key and content type header", () => {
+      // Given
+      const apiKey = "supersecret";
 
       const auth0ConfigurationObject = {
         userAccountServiceDomain: "http://local.domain",
-        userAccountServiceApiKey: "supersecret",
+        userAccountServiceApiKey: apiKey,
       };
 
       const registerNewUserFunction = auth0RuleLoader({
@@ -46,12 +49,52 @@ describe.each(registerNewUserCodeLocations)(
 
       // Then
       expect(mockAxios).toHaveBeenCalledTimes(1);
-      expect(mockAxios.mock.calls[0][0]).toContainEntries([["method", "POST"]]);
-      expect(mockAxios.mock.calls[0][0].headers).toContainEntries([
+      const axiosCallArg = mockAxios.mock.calls[0][0];
+      expect(axiosCallArg).toContainEntries([["method", "POST"]]);
+      expect(axiosCallArg.headers).toContainEntries([
         ["Content-Type", "application/json"],
         ["X-API-Key", auth0ConfigurationObject.userAccountServiceApiKey],
       ]);
     });
+
+    test(
+      "the rule makes a POST call to the UAS passing through the user's attributes\n" +
+        "and a base64-encoded sha256 hash of their Auth0 normalized user_id",
+      () => {
+        // Given
+        const name = "akindipe ekpeyong";
+        const userProfileimageLink = "https://fancy.image.com/mine";
+        const auth0EmailVerificationStatus = true;
+        const userId = "google-oauth2|103547991597142817347";
+
+        const auth0ConfigurationObject = {
+          userAccountServiceDomain: "http://local.domain",
+          userAccountServiceApiKey: "supersecret",
+        };
+
+        const registerNewUserFunction = auth0RuleLoader({
+          ruleLocation: registerNewUserCodeLocation,
+          mapOfRequiredModulesToReplaceWithMocks: mapOfModulesToOverride,
+          configuration: auth0ConfigurationObject,
+        });
+
+        // When
+        registerNewUserFunction({}, { idToken: {} }, mockAuth0Callback);
+
+        // Then
+        expect(mockAxios).toHaveBeenCalledTimes(1);
+        const axiosCallArg = mockAxios.mock.calls[0][0];
+        const hash = crypto.createHash("sha256");
+        const expectedHashedUserId = hash.update(userId).digest("base64");
+
+        expect(axiosCallArg.data).toContainEntries([
+          ["accountVerified", auth0EmailVerificationStatus],
+          ["name", name],
+          ["profileImageLink", userProfileimageLink],
+          ["id", expectedHashedUserId],
+        ]);
+      }
+    );
 
     test("the rule waits for the an HTTP response before invoking the auth0 callback", () => {
       // Given
