@@ -1,5 +1,4 @@
 function registerNewUser(user, context, callback) {
-  // eslint-disable-next-line global-require
   // eslint-disable-next-line import/no-unresolved
   const axios = require("axios@0.19.2");
   const mathDojoNamespace = "http://math-dojo.io/";
@@ -7,7 +6,10 @@ function registerNewUser(user, context, callback) {
     method: "POST",
     // eslint-disable-next-line no-undef
     url: `${configuration.userAccountServiceDomain}/organisations/user.organisationId/users`,
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "X-API-Key": `${configuration.userAccountServiceApiKey}`,
+    },
     data: '{"name":user.name}',
   };
 

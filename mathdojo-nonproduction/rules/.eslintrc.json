@@ -1,0 +1,9 @@
+{
+    "globals": {
+        "configuration": "readonly"
+    },
+    "rules": {
+        "global-require": "warn",
+        "no-unused-vars": "warn"
+    }
+}
