@@ -6,8 +6,8 @@ function registerNewUser(user, context, callback) {
   const options = {
     method: "POST",
     // eslint-disable-next-line no-undef
-    url: `https://${configuration.userAccountServiceDomain}/organisations/user.organisationId/users`,
-    headers: { "content-type": "application/json" },
+    url: `${configuration.userAccountServiceDomain}/organisations/user.organisationId/users`,
+    headers: { "Content-Type": "application/json" },
     data: '{"name":user.name}',
   };
 
