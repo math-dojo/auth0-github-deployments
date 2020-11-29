@@ -16,7 +16,11 @@ function registerNewUser(user, context, callback) {
       name: user.name,
       profileImageLink: user.picture,
       accountVerified: user.email_verified,
-      id: crypto.createHash("sha256").update(user.user_id).digest("base64"),
+      id: crypto
+        .createHash("sha256")
+        .update(user.user_id)
+        .digest("hex")
+        .slice(0, 32),
     },
   };
 

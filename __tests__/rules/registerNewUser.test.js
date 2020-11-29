@@ -88,7 +88,7 @@ describe.each(registerNewUserCodeLocations)(
     });
 
     test(`the rule makes a POST call to the UAS passing through the user's attributes
-and a base64-encoded sha256 hash of their Auth0 normalized user_id`, () => {
+and the first 128 bits of a hex-encoded sha256 hash of their Auth0 normalized user_id`, () => {
       // Given
       const registerNewUserFunction = auth0RuleLoader({
         ruleLocation: registerNewUserCodeLocation,
@@ -103,7 +103,10 @@ and a base64-encoded sha256 hash of their Auth0 normalized user_id`, () => {
       expect(mockAxios).toHaveBeenCalledTimes(1);
       const axiosCallArg = mockAxios.mock.calls[0][0];
       const hash = crypto.createHash("sha256");
-      const expectedHashedUserId = hash.update(userId).digest("base64");
+      const expectedHashedUserId = hash
+        .update(userId)
+        .digest("hex")
+        .slice(0, 32);
 
       expect(axiosCallArg.data).toContainEntries([
         ["accountVerified", auth0EmailVerificationStatus],
