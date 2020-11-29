@@ -3,10 +3,11 @@ function registerNewUser(user, context, callback) {
   const axios = require("axios@0.19.2");
   const crypto = require("crypto");
   const mathDojoNamespace = "http://math-dojo.io/";
+  const orgIdForUser = configuration.userAccountServiceDefaultOrgId;
   const options = {
     method: "POST",
     // eslint-disable-next-line no-undef
-    url: `${configuration.userAccountServiceDomain}/organisations/user.organisationId/users`,
+    url: `${configuration.userAccountServiceDomain}/organisations/${orgIdForUser}/users`,
     headers: {
       "Content-Type": "application/json",
       "X-API-Key": `${configuration.userAccountServiceApiKey}`,

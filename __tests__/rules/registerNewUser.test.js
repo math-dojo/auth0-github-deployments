@@ -21,6 +21,8 @@ describe.each(registerNewUserCodeLocations)(
     const defaultUser = {};
     const apiKey = "supersecret";
     const auth0ConfigurationObject = {};
+    const defaultOrgId = "defaultOrgId";
+    const dummyUASDomain = "http://local.domain";
 
     beforeEach(() => {
       mockAxios.mockClear();
@@ -40,8 +42,9 @@ describe.each(registerNewUserCodeLocations)(
       defaultUser.email_verified = auth0EmailVerificationStatus;
       defaultUser.user_id = userId;
 
-      auth0ConfigurationObject.userAccountServiceDomain = "http://local.domain";
+      auth0ConfigurationObject.userAccountServiceDomain = dummyUASDomain;
       auth0ConfigurationObject.userAccountServiceApiKey = apiKey;
+      auth0ConfigurationObject.userAccountServiceDefaultOrgId = defaultOrgId;
     });
 
     test("the rule makes a POST call to the User Account Service with an API key and content type header", () => {
@@ -64,6 +67,24 @@ describe.each(registerNewUserCodeLocations)(
         ["Content-Type", "application/json"],
         ["X-API-Key", auth0ConfigurationObject.userAccountServiceApiKey],
       ]);
+    });
+
+    test("the rule makes a POST call to the User Account Service using org supplied in config var", () => {
+      // Given
+      const registerNewUserFunction = auth0RuleLoader({
+        ruleLocation: registerNewUserCodeLocation,
+        mapOfRequiredModulesToReplaceWithMocks: mapOfModulesToOverride,
+        configuration: auth0ConfigurationObject,
+      });
+
+      // When
+      registerNewUserFunction(defaultUser, { idToken: {} }, mockAuth0Callback);
+
+      // Then
+      expect(mockAxios).toHaveBeenCalledTimes(1);
+      const targetUrl = new URL(mockAxios.mock.calls[0][0].url);
+      expect(targetUrl.origin).toBe(dummyUASDomain);
+      expect(targetUrl.pathname).toBe(`/organisations/${defaultOrgId}/users`);
     });
 
     test(`the rule makes a POST call to the UAS passing through the user's attributes
