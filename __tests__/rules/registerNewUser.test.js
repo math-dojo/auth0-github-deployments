@@ -86,13 +86,9 @@ describe.each(registerNewUserCodeLocations)(
 
         // When
         registerNewUserFunction(
-          
           defaultUser,
-          
           { idToken: {} },
-          
           mockAuth0Callback
-        
         );
 
         // Then
@@ -163,15 +159,11 @@ describe.each(registerNewUserCodeLocations)(
       return Promise.resolve().then(() =>
         Promise.all([
           expect(mockAuth0Callback).toHaveBeenCalledTimes(1),
-          expect(mockAuth0Callback).toHaveBeenCalledWith(
-            null,
-            defaultUser,
-            {
-              idToken: {
-                [`${mathDojoNamespace}user_permissions`]: [],
-              },
-            }
-          ),
+          expect(mockAuth0Callback).toHaveBeenCalledWith(null, defaultUser, {
+            idToken: {
+              [`${mathDojoNamespace}user_permissions`]: [],
+            },
+          }),
         ])
       );
     });
