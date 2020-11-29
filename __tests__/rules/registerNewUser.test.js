@@ -119,18 +119,16 @@ and the first 128 bits of a hex-encoded sha256 hash of their Auth0 normalized us
 
     test("the rule waits for the an HTTP response before invoking the auth0 callback", () => {
       // Given
-      mockAxios.mockImplementation(
-        () =>
-          new Promise((resolveFunction) => {
-            setTimeout(() => {
-              resolveFunction({
-                data: {
-                  permissions: [],
-                },
-              });
-            }, 5000);
-          })
-      );
+      const delayedDataPromise = new Promise((resolveFunction) => {
+        setTimeout(() => {
+          resolveFunction({
+            data: {
+              permissions: [],
+            },
+          });
+        }, 5000);
+      });
+      mockAxios.mockImplementation(() => delayedDataPromise);
 
       const registerNewUserFunction = auth0RuleLoader({
         ruleLocation: registerNewUserCodeLocation,
@@ -150,20 +148,7 @@ and the first 128 bits of a hex-encoded sha256 hash of their Auth0 normalized us
        */
       jest.runAllTimers();
 
-      /**
-       * The previous execution of setTimeout put the function waiting for
-       * the return data from mockAxios's promise at the front of the Node.js
-       * Job Queue.
-       * The test now needs to wait for the invocation of that function which
-       * will happen during the next "tick" of the event loop. Checking the
-       * auth0 callback prior to this will fail because, the asynchronous event
-       * has just not been processed yet.
-       * The simple way to "wait" is to perform the assertions as another activity
-       * within the Job Queue during the same tick of the loop, i.e.the instantaneous
-       * resolution of a new promise, whose "downstream function" will now sit behind
-       * the one already queued by setTimeout.
-       */
-      return Promise.resolve().then(() =>
+      return delayedDataPromise.then(() =>
         Promise.all([
           expect(mockAuth0Callback).toHaveBeenCalledTimes(1),
           expect(mockAuth0Callback).toHaveBeenCalledWith(null, defaultUser, {
@@ -206,7 +191,7 @@ and the first 128 bits of a hex-encoded sha256 hash of their Auth0 normalized us
           throw new Error("promise should have been rejected");
         })
         .catch((err) => {
-          if (! RegExp(errorFromUAS).test(err.message)) {
+          if (!RegExp(errorFromUAS).test(err.message)) {
             return Promise.reject(err);
           }
           return Promise.all([
