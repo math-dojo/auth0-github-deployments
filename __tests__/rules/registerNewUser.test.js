@@ -67,44 +67,37 @@ describe.each(registerNewUserCodeLocations)(
       ]);
     });
 
-    test(
-      "the rule makes a POST call to the UAS passing through the user's attributes\n" +
-        "and a base64-encoded sha256 hash of their Auth0 normalized user_id",
-      () => {
-        // Given
+    test(`the rule makes a POST call to the UAS passing through the user's attributes
+and a base64-encoded sha256 hash of their Auth0 normalized user_id`, () => {
+      // Given
 
-        const auth0ConfigurationObject = {
-          userAccountServiceDomain: "http://local.domain",
-          userAccountServiceApiKey: "supersecret",
-        };
+      const auth0ConfigurationObject = {
+        userAccountServiceDomain: "http://local.domain",
+        userAccountServiceApiKey: "supersecret",
+      };
 
-        const registerNewUserFunction = auth0RuleLoader({
-          ruleLocation: registerNewUserCodeLocation,
-          mapOfRequiredModulesToReplaceWithMocks: mapOfModulesToOverride,
-          configuration: auth0ConfigurationObject,
-        });
+      const registerNewUserFunction = auth0RuleLoader({
+        ruleLocation: registerNewUserCodeLocation,
+        mapOfRequiredModulesToReplaceWithMocks: mapOfModulesToOverride,
+        configuration: auth0ConfigurationObject,
+      });
 
-        // When
-        registerNewUserFunction(
-          defaultUser,
-          { idToken: {} },
-          mockAuth0Callback
-        );
+      // When
+      registerNewUserFunction(defaultUser, { idToken: {} }, mockAuth0Callback);
 
-        // Then
-        expect(mockAxios).toHaveBeenCalledTimes(1);
-        const axiosCallArg = mockAxios.mock.calls[0][0];
-        const hash = crypto.createHash("sha256");
-        const expectedHashedUserId = hash.update(userId).digest("base64");
+      // Then
+      expect(mockAxios).toHaveBeenCalledTimes(1);
+      const axiosCallArg = mockAxios.mock.calls[0][0];
+      const hash = crypto.createHash("sha256");
+      const expectedHashedUserId = hash.update(userId).digest("base64");
 
-        expect(axiosCallArg.data).toContainEntries([
-          ["accountVerified", auth0EmailVerificationStatus],
-          ["name", name],
-          ["profileImageLink", userProfileimageLink],
-          ["id", expectedHashedUserId],
-        ]);
-      }
-    );
+      expect(axiosCallArg.data).toContainEntries([
+        ["accountVerified", auth0EmailVerificationStatus],
+        ["name", name],
+        ["profileImageLink", userProfileimageLink],
+        ["id", expectedHashedUserId],
+      ]);
+    });
 
     test("the rule waits for the an HTTP response before invoking the auth0 callback", () => {
       // Given
