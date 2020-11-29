@@ -19,6 +19,8 @@ describe.each(registerNewUserCodeLocations)(
     const auth0EmailVerificationStatus = true;
     const userId = "google-oauth2|103547991597142817347";
     const defaultUser = {};
+    const apiKey = "supersecret";
+    const auth0ConfigurationObject = {};
 
     beforeEach(() => {
       mockAxios.mockClear();
@@ -37,16 +39,13 @@ describe.each(registerNewUserCodeLocations)(
       defaultUser.picture = userProfileimageLink;
       defaultUser.email_verified = auth0EmailVerificationStatus;
       defaultUser.user_id = userId;
+
+      auth0ConfigurationObject.userAccountServiceDomain = "http://local.domain";
+      auth0ConfigurationObject.userAccountServiceApiKey = apiKey;
     });
 
     test("the rule makes a POST call to the User Account Service with an API key and content type header", () => {
       // Given
-      const apiKey = "supersecret";
-
-      const auth0ConfigurationObject = {
-        userAccountServiceDomain: "http://local.domain",
-        userAccountServiceApiKey: apiKey,
-      };
 
       const registerNewUserFunction = auth0RuleLoader({
         ruleLocation: registerNewUserCodeLocation,
@@ -70,12 +69,6 @@ describe.each(registerNewUserCodeLocations)(
     test(`the rule makes a POST call to the UAS passing through the user's attributes
 and a base64-encoded sha256 hash of their Auth0 normalized user_id`, () => {
       // Given
-
-      const auth0ConfigurationObject = {
-        userAccountServiceDomain: "http://local.domain",
-        userAccountServiceApiKey: "supersecret",
-      };
-
       const registerNewUserFunction = auth0RuleLoader({
         ruleLocation: registerNewUserCodeLocation,
         mapOfRequiredModulesToReplaceWithMocks: mapOfModulesToOverride,
@@ -113,10 +106,6 @@ and a base64-encoded sha256 hash of their Auth0 normalized user_id`, () => {
             }, 5000);
           })
       );
-
-      const auth0ConfigurationObject = {
-        userAccountServiceDomain: "http://local.domain",
-      };
 
       const registerNewUserFunction = auth0RuleLoader({
         ruleLocation: registerNewUserCodeLocation,
