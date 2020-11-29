@@ -200,17 +200,15 @@ and the first 128 bits of a hex-encoded sha256 hash of their Auth0 normalized us
       // Then
       expect(mockAuth0Callback).not.toHaveBeenCalled();
       jest.runAllTimers();
-      process.nextTick();
-      return Promise.reject().catch(() =>
-        Promise.all([
-          expect(mockAuth0Callback).toHaveBeenCalledTimes(1),
-          expect(mockAuth0Callback).toHaveBeenCalledWith(new UnauthorizedError('[0001] - error response from UAS'), defaultUser, {
-            idToken: {
-              [`${mathDojoNamespace}user_permissions`]: [],
-            },
-          }),
-        ])
-      );
+
+      return Promise.all([
+        expect(mockAuth0Callback).toHaveBeenCalledTimes(1),
+        expect(mockAuth0Callback).toHaveBeenCalledWith(new UnauthorizedError('[0001] - error response from UAS'), defaultUser, {
+          idToken: {
+            [`${mathDojoNamespace}user_permissions`]: [],
+          },
+        }),
+      ])
     });
   }
 );
