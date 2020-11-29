@@ -1,0 +1,25 @@
+pr:
+  - develop
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+stages:
+  - stage: Build
+    jobs:
+      - job: Build_and_Exec_Unit_Tests
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: '12.x'
+            displayName: 'Install Node.js'
+          - script: |
+              npm install
+            displayName: 'Install dependencies'
+          - script: |
+              npm test
+            displayName: 'Run Tests'
+          - script: |
+              npm run lint
+            displayName: 'Lint Code'
+  
