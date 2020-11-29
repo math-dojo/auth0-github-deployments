@@ -14,6 +14,11 @@ describe.each(registerNewUserCodeLocations)(
     const mockAxios = jest.fn().mockName("mockAxios");
     const mockAuth0Callback = jest.fn().mockName("mockAuth0Callback");
     const mapOfModulesToOverride = new Map();
+    const name = "akindipe ekpeyong";
+    const userProfileimageLink = "https://fancy.image.com/mine";
+    const auth0EmailVerificationStatus = true;
+    const userId = "google-oauth2|103547991597142817347";
+    const defaultUser = {};
 
     beforeEach(() => {
       mockAxios.mockClear();
@@ -25,8 +30,13 @@ describe.each(registerNewUserCodeLocations)(
         })
       );
       mapOfModulesToOverride["axios@0.19.2"] = mockAxios;
+      mapOfModulesToOverride.crypto = crypto;
 
       mockAuth0Callback.mockClear();
+      defaultUser.name = name;
+      defaultUser.picture = userProfileimageLink;
+      defaultUser.email_verified = auth0EmailVerificationStatus;
+      defaultUser.user_id = userId;
     });
 
     test("the rule makes a POST call to the User Account Service with an API key and content type header", () => {
@@ -45,7 +55,7 @@ describe.each(registerNewUserCodeLocations)(
       });
 
       // When
-      registerNewUserFunction({}, { idToken: {} }, mockAuth0Callback);
+      registerNewUserFunction(defaultUser, { idToken: {} }, mockAuth0Callback);
 
       // Then
       expect(mockAxios).toHaveBeenCalledTimes(1);
@@ -62,10 +72,6 @@ describe.each(registerNewUserCodeLocations)(
         "and a base64-encoded sha256 hash of their Auth0 normalized user_id",
       () => {
         // Given
-        const name = "akindipe ekpeyong";
-        const userProfileimageLink = "https://fancy.image.com/mine";
-        const auth0EmailVerificationStatus = true;
-        const userId = "google-oauth2|103547991597142817347";
 
         const auth0ConfigurationObject = {
           userAccountServiceDomain: "http://local.domain",
@@ -79,7 +85,15 @@ describe.each(registerNewUserCodeLocations)(
         });
 
         // When
-        registerNewUserFunction({}, { idToken: {} }, mockAuth0Callback);
+        registerNewUserFunction(
+          
+          defaultUser,
+          
+          { idToken: {} },
+          
+          mockAuth0Callback
+        
+        );
 
         // Then
         expect(mockAxios).toHaveBeenCalledTimes(1);
@@ -122,7 +136,7 @@ describe.each(registerNewUserCodeLocations)(
       });
 
       // When
-      registerNewUserFunction({}, { idToken: {} }, mockAuth0Callback);
+      registerNewUserFunction(defaultUser, { idToken: {} }, mockAuth0Callback);
 
       // Then
       expect(mockAuth0Callback).not.toHaveBeenCalled();
@@ -151,7 +165,7 @@ describe.each(registerNewUserCodeLocations)(
           expect(mockAuth0Callback).toHaveBeenCalledTimes(1),
           expect(mockAuth0Callback).toHaveBeenCalledWith(
             null,
-            {},
+            defaultUser,
             {
               idToken: {
                 [`${mathDojoNamespace}user_permissions`]: [],

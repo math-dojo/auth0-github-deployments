@@ -1,6 +1,7 @@
 function registerNewUser(user, context, callback) {
   // eslint-disable-next-line import/no-unresolved
   const axios = require("axios@0.19.2");
+  const crypto = require("crypto");
   const mathDojoNamespace = "http://math-dojo.io/";
   const options = {
     method: "POST",
@@ -10,7 +11,12 @@ function registerNewUser(user, context, callback) {
       "Content-Type": "application/json",
       "X-API-Key": `${configuration.userAccountServiceApiKey}`,
     },
-    data: '{"name":user.name}',
+    data: {
+      name: user.name,
+      profileImageLink: user.picture,
+      accountVerified: user.email_verified,
+      id: crypto.createHash("sha256").update(user.user_id).digest("base64"),
+    },
   };
 
   return axios(options)
