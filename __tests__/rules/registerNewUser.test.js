@@ -1,4 +1,5 @@
 const crypto = require("crypto");
+const UnauthorizedError = require("../helpers/mockUnauthorizedError");
 const auth0RuleLoader = require("../helpers/function-loader").loadAuth0Rule;
 
 const registerNewUserCodeLocations = [
@@ -166,6 +167,44 @@ and the first 128 bits of a hex-encoded sha256 hash of their Auth0 normalized us
         Promise.all([
           expect(mockAuth0Callback).toHaveBeenCalledTimes(1),
           expect(mockAuth0Callback).toHaveBeenCalledWith(null, defaultUser, {
+            idToken: {
+              [`${mathDojoNamespace}user_permissions`]: [],
+            },
+          }),
+        ])
+      );
+    });
+
+    test("if the call to UAS is unsuccessful, callback returns an error, the user and the context", () => {
+      // Given
+      const errorFromUAS = "some error from the user";
+
+      mockAxios.mockImplementation(
+        () =>
+          new Promise((_resolveFunction, rejectFunction) => {
+            setTimeout(() => {
+              rejectFunction(new Error(errorFromUAS));
+            }, 5000);
+          })
+      );
+
+      const registerNewUserFunction = auth0RuleLoader({
+        ruleLocation: registerNewUserCodeLocation,
+        mapOfRequiredModulesToReplaceWithMocks: mapOfModulesToOverride,
+        configuration: auth0ConfigurationObject,
+      });
+
+      // When
+      registerNewUserFunction(defaultUser, { idToken: {} }, mockAuth0Callback);
+
+      // Then
+      expect(mockAuth0Callback).not.toHaveBeenCalled();
+      jest.runAllTimers();
+      process.nextTick();
+      return Promise.reject().catch(() =>
+        Promise.all([
+          expect(mockAuth0Callback).toHaveBeenCalledTimes(1),
+          expect(mockAuth0Callback).toHaveBeenCalledWith(new UnauthorizedError('[0001] - error response from UAS'), defaultUser, {
             idToken: {
               [`${mathDojoNamespace}user_permissions`]: [],
             },

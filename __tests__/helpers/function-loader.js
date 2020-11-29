@@ -1,6 +1,7 @@
 const vm = require('vm');
 const fs = require('fs');
 const path = require('path');
+const UnauthorizedError = require('./mockUnauthorizedError');
 
 const cachedRuleCode = new Map();
 
@@ -40,6 +41,7 @@ function loadAuth0Rule({
       require: mockRequire,
       configuration,
       console,
+      UnauthorizedError
     },
     {
       filename: ruleLocation,

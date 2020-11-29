@@ -1,6 +1,7 @@
 {
     "globals": {
-        "configuration": "readonly"
+        "configuration": "readonly",
+        "UnauthorizedError": "readonly"
     },
     "rules": {
         "global-require": "warn",

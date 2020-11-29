@@ -39,6 +39,6 @@ function registerNewUser(user, context, callback) {
       console.error(
         `There was an error processing the new registration: ${err.message}`
       );
-      return err;
+      callback(new UnauthorizedError('[0001] - error response from UAS'), user, context);
     });
 }
