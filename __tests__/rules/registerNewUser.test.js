@@ -204,5 +204,38 @@ and the first 128 bits of a hex-encoded sha256 hash of their Auth0 normalized us
           ]);
         });
     });
+
+    test("the rule adds any permissions included in the UAS response as a custom claim on the IDToken", () => {
+      // Given
+      const dataPromise = Promise.resolve({
+        data: {
+          permissions: ["CONSUMER", "CREATOR"],
+        },
+      });
+      mockAxios.mockImplementation(() => dataPromise);
+
+      const registerNewUserFunction = auth0RuleLoader({
+        ruleLocation: registerNewUserCodeLocation,
+        mapOfRequiredModulesToReplaceWithMocks: mapOfModulesToOverride,
+        configuration: auth0ConfigurationObject,
+      });
+
+      // When
+      registerNewUserFunction(defaultUser, { idToken: {} }, mockAuth0Callback);
+
+      // Then
+      expect(mockAuth0Callback).not.toHaveBeenCalled();
+
+      return dataPromise.then(() =>
+        Promise.all([
+          expect(mockAuth0Callback).toHaveBeenCalledTimes(1),
+          expect(mockAuth0Callback).toHaveBeenCalledWith(null, defaultUser, {
+            idToken: {
+              [`${mathDojoNamespace}user_permissions`]: ["CONSUMER", "CREATOR"],
+            },
+          }),
+        ])
+      );
+    });
   }
 );
