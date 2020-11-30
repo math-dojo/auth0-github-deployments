@@ -122,9 +122,7 @@ and the first 128 bits of a hex-encoded sha256 hash of their Auth0 normalized us
       const delayedDataPromise = new Promise((resolveFunction) => {
         setTimeout(() => {
           resolveFunction({
-            data: {
-              permissions: [],
-            },
+            data: {},
           });
         }, 5000);
       });

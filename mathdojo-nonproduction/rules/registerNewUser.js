@@ -31,7 +31,7 @@ function registerNewUser(user, context, callback) {
         "A response was obtained for the call to the User Account Service"
       );
       context.idToken[`${mathDojoNamespace}user_permissions`] =
-        res.data.permissions;
+        res.data.permissions ? res.data.permissions: [];
       callback(null, user, context);
     })
     .catch((err) => {
