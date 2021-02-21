@@ -4,6 +4,9 @@ const auth0RuleLoader = require("../helpers/function-loader").loadAuth0Rule;
 
 const registerNewUserCodeLocations = [
   ["Nonproduction", "mathdojo-nonproduction/rules/registerNewUser.js"],
+  ["LocalNonproduction", "local-mathdojo-nonproduction/rules/registerNewUser.js"],
+  ["Preproduction", "mathdojo-preproduction/rules/registerNewUser.js"],
+  ["Production", "mathdojo-production/rules/registerNewUser.js"],
 ];
 const mathDojoNamespace = "http://math-dojo.io/";
 
