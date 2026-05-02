@@ -1,0 +1,17 @@
+﻿{
+  "name": "MathDojo User Account Service",
+  "identifier": "https://user-account-service.mathdojo.io",
+  "signing_alg": "RS256",
+  "token_lifetime": 86400,
+  "token_lifetime_for_web": 7200,
+  "allow_offline_access": false,
+  "skip_consent_for_verifiable_first_party_clients": true,
+  "enforce_policies": true,
+  "scopes": [
+    { "value": "read:users",          "description": "Read user profiles" },
+    { "value": "write:users",         "description": "Create and update user profiles" },
+    { "value": "delete:users",        "description": "Delete user profiles" },
+    { "value": "read:organisations",  "description": "Read organisation data" },
+    { "value": "write:organisations", "description": "Create and update organisations" }
+  ]
+}

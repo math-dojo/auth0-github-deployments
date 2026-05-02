@@ -1,0 +1,19 @@
+﻿{
+  "name": "registerNewUser",
+  "supported_triggers": [
+    {
+      "id": "post-login",
+      "version": "v3"
+    }
+  ],
+  "dependencies": [
+    { "name": "axios", "version": "1.6.8" }
+  ],
+  "secrets": [
+    { "name": "userAccountServiceDomain" },
+    { "name": "userAccountServiceApiKey" },
+    { "name": "userAccountServiceDefaultOrgId" }
+  ],
+  "status": "built",
+  "deployed": true
+}

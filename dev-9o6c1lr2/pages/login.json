@@ -1,0 +1,6 @@
+﻿{
+  "name": "login",
+  "enabled": true,
+  "html": "./login.html"
+}
+

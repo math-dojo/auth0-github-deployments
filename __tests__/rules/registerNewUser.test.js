@@ -53,7 +53,6 @@ describe.each(registerNewUserCodeLocations)(
 
     test("the rule makes a POST call to the User Account Service with an API key and content type header", () => {
       // Given
-
       const registerNewUserFunction = auth0RuleLoader({
         ruleLocation: registerNewUserCodeLocation,
         mapOfRequiredModulesToReplaceWithMocks: mapOfModulesToOverride,
@@ -61,7 +60,7 @@ describe.each(registerNewUserCodeLocations)(
       });
 
       // When
-      registerNewUserFunction(defaultUser, { idToken: {} }, mockAuth0Callback);
+      registerNewUserFunction(defaultUser, { idToken: {}, stats: { loginsCount: 1 } }, mockAuth0Callback);
 
       // Then
       expect(mockAxios).toHaveBeenCalledTimes(1);
@@ -82,7 +81,7 @@ describe.each(registerNewUserCodeLocations)(
       });
 
       // When
-      registerNewUserFunction(defaultUser, { idToken: {} }, mockAuth0Callback);
+      registerNewUserFunction(defaultUser, { idToken: {}, stats: { loginsCount: 1 } }, mockAuth0Callback);
 
       // Then
       expect(mockAxios).toHaveBeenCalledTimes(1);
@@ -101,7 +100,7 @@ and the first 128 bits of a hex-encoded sha256 hash of their Auth0 normalized us
       });
 
       // When
-      registerNewUserFunction(defaultUser, { idToken: {} }, mockAuth0Callback);
+      registerNewUserFunction(defaultUser, { idToken: {}, stats: { loginsCount: 1 } }, mockAuth0Callback);
 
       // Then
       expect(mockAxios).toHaveBeenCalledTimes(1);
@@ -138,7 +137,7 @@ and the first 128 bits of a hex-encoded sha256 hash of their Auth0 normalized us
       });
 
       // When
-      registerNewUserFunction(defaultUser, { idToken: {} }, mockAuth0Callback);
+      registerNewUserFunction(defaultUser, { idToken: {}, stats: { loginsCount: 1 } }, mockAuth0Callback);
 
       // Then
       expect(mockAuth0Callback).not.toHaveBeenCalled();
@@ -154,8 +153,10 @@ and the first 128 bits of a hex-encoded sha256 hash of their Auth0 normalized us
           expect(mockAuth0Callback).toHaveBeenCalledTimes(1),
           expect(mockAuth0Callback).toHaveBeenCalledWith(null, defaultUser, {
             idToken: {
+              [`${mathDojoNamespace}belongs_to_org`]: defaultOrgId,
               [`${mathDojoNamespace}user_permissions`]: [],
             },
+            stats: { loginsCount: 1 },
           }),
         ])
       );
@@ -181,7 +182,7 @@ and the first 128 bits of a hex-encoded sha256 hash of their Auth0 normalized us
       });
 
       // When
-      registerNewUserFunction(defaultUser, { idToken: {} }, mockAuth0Callback);
+      registerNewUserFunction(defaultUser, { idToken: {}, stats: { loginsCount: 1 } }, mockAuth0Callback);
 
       // Then
       expect(mockAuth0Callback).not.toHaveBeenCalled();
@@ -202,6 +203,7 @@ and the first 128 bits of a hex-encoded sha256 hash of their Auth0 normalized us
               defaultUser,
               {
                 idToken: {},
+                stats: { loginsCount: 1 },
               }
             ),
           ]);
@@ -224,7 +226,7 @@ and the first 128 bits of a hex-encoded sha256 hash of their Auth0 normalized us
       });
 
       // When
-      registerNewUserFunction(defaultUser, { idToken: {} }, mockAuth0Callback);
+      registerNewUserFunction(defaultUser, { idToken: {}, stats: { loginsCount: 1 } }, mockAuth0Callback);
 
       // Then
       expect(mockAuth0Callback).not.toHaveBeenCalled();
@@ -234,11 +236,91 @@ and the first 128 bits of a hex-encoded sha256 hash of their Auth0 normalized us
           expect(mockAuth0Callback).toHaveBeenCalledTimes(1),
           expect(mockAuth0Callback).toHaveBeenCalledWith(null, defaultUser, {
             idToken: {
+              [`${mathDojoNamespace}belongs_to_org`]: defaultOrgId,
               [`${mathDojoNamespace}user_permissions`]: ["CONSUMER", "CREATOR"],
             },
+            stats: { loginsCount: 1 },
           }),
         ])
       );
+    });
+
+    test("the rule adds the belongs_to_org claim from the configuration default org ID", () => {
+      // Given
+      const dataPromise = Promise.resolve({ data: { permissions: [] } });
+      mockAxios.mockImplementation(() => dataPromise);
+
+      const registerNewUserFunction = auth0RuleLoader({
+        ruleLocation: registerNewUserCodeLocation,
+        mapOfRequiredModulesToReplaceWithMocks: mapOfModulesToOverride,
+        configuration: auth0ConfigurationObject,
+      });
+
+      // When
+      registerNewUserFunction(defaultUser, { idToken: {}, stats: { loginsCount: 1 } }, mockAuth0Callback);
+
+      // Then
+      return dataPromise.then(() =>
+        expect(mockAuth0Callback).toHaveBeenCalledWith(null, defaultUser, {
+          idToken: expect.objectContaining({
+            [`${mathDojoNamespace}belongs_to_org`]: defaultOrgId,
+          }),
+          stats: { loginsCount: 1 },
+        })
+      );
+    });
+
+    test("the rule skips UAS registration when loginsCount > 1 (not first login)", () => {
+      // Given
+      const registerNewUserFunction = auth0RuleLoader({
+        ruleLocation: registerNewUserCodeLocation,
+        mapOfRequiredModulesToReplaceWithMocks: mapOfModulesToOverride,
+        configuration: auth0ConfigurationObject,
+      });
+
+      // When
+      registerNewUserFunction(defaultUser, { idToken: {}, stats: { loginsCount: 2 } }, mockAuth0Callback);
+
+      // Then — axios should NOT be called and callback should pass through immediately
+      expect(mockAxios).not.toHaveBeenCalled();
+      expect(mockAuth0Callback).toHaveBeenCalledTimes(1);
+      expect(mockAuth0Callback).toHaveBeenCalledWith(null, defaultUser, {
+        idToken: {},
+        stats: { loginsCount: 2 },
+      });
+    });
+
+    test("the rule treats a 409 response from UAS as idempotent success", () => {
+      // Given
+      const conflictError = new Error("Conflict");
+      conflictError.response = { status: 409 };
+      const conflictPromise = Promise.reject(conflictError);
+      mockAxios.mockImplementation(() => conflictPromise);
+
+      const registerNewUserFunction = auth0RuleLoader({
+        ruleLocation: registerNewUserCodeLocation,
+        mapOfRequiredModulesToReplaceWithMocks: mapOfModulesToOverride,
+        configuration: auth0ConfigurationObject,
+      });
+
+      // When
+      registerNewUserFunction(defaultUser, { idToken: {}, stats: { loginsCount: 1 } }, mockAuth0Callback);
+
+      // Then
+      return conflictPromise
+        .catch(() => {}) // suppress unhandled rejection warning
+        .then(() =>
+          Promise.all([
+            expect(mockAuth0Callback).toHaveBeenCalledTimes(1),
+            expect(mockAuth0Callback).toHaveBeenCalledWith(null, defaultUser, {
+              idToken: {
+                [`${mathDojoNamespace}belongs_to_org`]: defaultOrgId,
+                [`${mathDojoNamespace}user_permissions`]: [],
+              },
+              stats: { loginsCount: 1 },
+            }),
+          ])
+        );
     });
   }
 );
