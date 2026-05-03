@@ -1,4 +1,4 @@
-﻿function registerNewUser(user, context, callback) {
+function registerNewUser(user, context, callback) {
   // Task 4: loginsCount guard — only register on first login
   if (context.stats.loginsCount > 1) {
     return callback(null, user, context);

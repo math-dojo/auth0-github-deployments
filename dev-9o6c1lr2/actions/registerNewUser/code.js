@@ -1,4 +1,4 @@
-﻿const axios = require("axios");
+const axios = require("axios");
 const crypto = require("crypto");
 /**
  * Handler executed during the Post-Login flow.
