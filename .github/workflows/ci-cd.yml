@@ -1,0 +1,103 @@
+name: CI / CD
+
+on:
+  push:
+    branches:
+      - develop   # → deploys to nonproduction
+      - master    # → deploys to preproduction (production needs manual approval)
+
+jobs:
+  # ── 1. Build & Test ───────────────────────────────────────────────────────
+  build-and-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Lint code
+        run: npm run lint
+
+  # ── 2. Deploy → Non-Production (develop branch only) ──────────────────────
+  deploy-nonprod:
+    name: Deploy → Non-Production
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    if: github.ref == 'refs/heads/develop'
+    environment: nonproduction
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Deploy to Non-Production Auth0 Tenant
+        run: npx a0deploy import --input_file local-mathdojo-nonproduction
+        env:
+          AUTH0_DOMAIN: ${{ secrets.AUTH0_NONPROD_DOMAIN }}
+          AUTH0_CLIENT_ID: ${{ secrets.AUTH0_NONPROD_CLIENT_ID }}
+          AUTH0_CLIENT_SECRET: ${{ secrets.AUTH0_NONPROD_CLIENT_SECRET }}
+
+  # ── 3. Deploy → Pre-Production (master branch only) ───────────────────────
+  deploy-preprod:
+    name: Deploy → Pre-Production
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    if: github.ref == 'refs/heads/master'
+    environment: preproduction
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Deploy to Pre-Production Auth0 Tenant
+        run: npx a0deploy import --input_file mathdojo-preproduction
+        env:
+          AUTH0_DOMAIN: ${{ secrets.AUTH0_PREPROD_DOMAIN }}
+          AUTH0_CLIENT_ID: ${{ secrets.AUTH0_PREPROD_CLIENT_ID }}
+          AUTH0_CLIENT_SECRET: ${{ secrets.AUTH0_PREPROD_CLIENT_SECRET }}
+
+  # ── 4. Deploy → Production (master, manual approval required) ─────────────
+  deploy-production:
+    name: Deploy → Production
+    runs-on: ubuntu-latest
+    needs: deploy-preprod
+    if: github.ref == 'refs/heads/master'
+    environment: production   # configure required reviewers in GitHub Settings → Environments
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Deploy to Production Auth0 Tenant
+        run: npx a0deploy import --input_file mathdojo-production
+        env:
+          AUTH0_DOMAIN: ${{ secrets.AUTH0_PROD_DOMAIN }}
+          AUTH0_CLIENT_ID: ${{ secrets.AUTH0_PROD_CLIENT_ID }}
+          AUTH0_CLIENT_SECRET: ${{ secrets.AUTH0_PROD_CLIENT_SECRET }}
+
