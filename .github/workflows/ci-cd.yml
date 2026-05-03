@@ -46,8 +46,11 @@ jobs:
 
       - run: npm install
 
+      - name: Show actions directory structure
+        run: find local-mathdojo-nonproduction/actions -type f | sort
+
       - name: Deploy to Non-Production Auth0 Tenant
-        run: npx a0deploy deploy --input_file local-mathdojo-nonproduction --debug
+        run: npx a0deploy deploy --input_file local-mathdojo-nonproduction
         env:
           AUTH0_DOMAIN: ${{ secrets.AUTH0_NONPROD_DOMAIN }}
           AUTH0_CLIENT_ID: ${{ secrets.AUTH0_NONPROD_CLIENT_ID }}
