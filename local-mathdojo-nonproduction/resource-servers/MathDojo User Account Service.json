@@ -1,4 +1,4 @@
-﻿{
+{
   "name": "MathDojo User Account Service",
   "identifier": "https://user-account-service.mathdojo.io",
   "signing_alg": "RS256",
