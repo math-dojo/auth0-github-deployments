@@ -1,0 +1,28 @@
+﻿{
+    "supported_triggers":  [
+                               {
+                                   "id":  "post-login",
+                                   "version":  "v3"
+                               }
+                           ],
+    "name":  "registerNewUser",
+    "code":  "./actions/registerNewUser/code.js",
+    "secrets":  [
+                    {
+                        "name":  "userAccountServiceDomain"
+                    },
+                    {
+                        "name":  "userAccountServiceApiKey"
+                    },
+                    {
+                        "name":  "userAccountServiceDefaultOrgId"
+                    }
+                ],
+    "dependencies":  [
+                         {
+                             "version":  "1.6.8",
+                             "name":  "axios"
+                         }
+                     ],
+    "runtime":  "node22"
+}
