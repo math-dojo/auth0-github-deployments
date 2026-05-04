@@ -46,19 +46,8 @@ jobs:
 
       - run: npm install
 
-      - name: Show actions files and version
-        run: |
-          echo "=== auth0-deploy-cli version ==="
-          npx a0deploy --version
-          echo "=== Actions directory ==="
-          find local-mathdojo-nonproduction/actions -type f | sort
-          echo "=== metadata.json content ==="
-          cat local-mathdojo-nonproduction/actions/registerNewUser/metadata.json
-          echo "=== code.js first 5 lines ==="
-          head -5 local-mathdojo-nonproduction/actions/registerNewUser/code.js
-          echo "=== Actions handler source (how it loads) ==="
-          cat node_modules/auth0-deploy-cli/dist/src/tools/auth0/handlers/actions.js 2>/dev/null | head -100 || echo "File not found at that path"
-          find node_modules/auth0-deploy-cli -name "actions.js" 2>/dev/null | head -5
+      - name: Show actions handler source
+        run: cat node_modules/auth0-deploy-cli/lib/context/directory/handlers/actions.js
 
       - name: Deploy to Non-Production Auth0 Tenant
         run: npx a0deploy deploy --input_file local-mathdojo-nonproduction --debug
